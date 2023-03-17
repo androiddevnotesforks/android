@@ -1,0 +1,14 @@
+*.iml
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+api.properties
+*.apk
+*.json
+/app/build
+*.lock
