@@ -1,9 +1,13 @@
 # HandyAI
 Open source ChatGPT Client for Android
 
+![Group 13](https://user-images.githubusercontent.com/83884225/226114760-a943dff6-416d-4f6d-98af-388404a610a9.png)
+
+<a href='https://play.google.com/store/apps/details?id=fusion.ai&utm_source=github&utm_campaign=oos&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/></a>
+
 [API Key Faq](https://github.com/Handy-AI/android/blob/main/ApiKeyFaqs.md) and [Guide](https://github.com/Handy-AI/android/blob/main/ApiKeyGuide.md)
 
-# Limitations and Feature Roadmap
+# Limitations and Feature Roadmap!
 
 * The message length of trial users are currently limited. You can write "continue" if your message ends abruptly.
 * Your conversation is deleted as soon as you close the app. This means that you can't access the same conversation on different devices right now though the conversations are stored locally on your device.
