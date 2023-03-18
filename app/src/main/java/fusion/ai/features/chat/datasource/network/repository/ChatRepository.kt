@@ -2,6 +2,7 @@ package fusion.ai.features.chat.datasource.network.repository
 
 import androidx.room.withTransaction
 import com.google.gson.Gson
+import fusion.ai.BuildConfig
 import fusion.ai.billing.Plan
 import fusion.ai.datasource.cache.Database
 import fusion.ai.datasource.cache.datastore.SettingsDataStore
@@ -28,8 +29,6 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.close
 import io.ktor.websocket.readText
-import java.util.UUID
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
@@ -52,6 +51,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.UUID
+import javax.inject.Inject
 
 class ChatRepository @Inject constructor(
     private val client: HttpClient,
@@ -117,12 +118,15 @@ class ChatRepository @Inject constructor(
         Timber.d("User id $id")
         val attachApiKey = settingDs.getCurrentPlan.first() == Plan.Lifetime
         val apiKey = if (attachApiKey) settingDs.getApiKey.first() else null
-        Timber.d("Initiating connection $attachApiKey $apiKey")
+        val streamResponse = settingDs.streamResponse.first()
+        Timber.d("Initiating connection $attachApiKey")
         return try {
             socket = client.webSocketSession {
                 url(Endpoints.ChatSocket.build())
                 parameter("id", id)
                 parameter("api", apiKey)
+                parameter("version", BuildConfig.VERSION_NAME)
+                parameter("stream", streamResponse)
             }
             if (socket?.isActive == true) {
                 Result.success(true)
@@ -141,20 +145,24 @@ class ChatRepository @Inject constructor(
             val message = Gson().toJson(outgoingMessage)
             socket?.send(Frame.Text(message))
             _isSendEnabled.update { false }
-//            insertLocalChat(
-//                ChatEntity(
-//                    type = MessageType.TextGeneration,
-//                    message = MessageEntity(
-//                        content = outgoingMessage.content,
-//                        role = MessageRole.User,
-//                    ),
-//                    chatId = UUID.randomUUID().toString(),
-//                    timestamp = System.currentTimeMillis()
-//                )
-//            )
+            insertLocalChat(
+                ChatEntity(
+                    type = MessageType.TextGeneration,
+                    message = MessageEntity(
+                        content = outgoingMessage.content,
+                        role = MessageRole.User
+                    ),
+                    chatId = UUID.randomUUID().toString(),
+                    timestamp = System.currentTimeMillis()
+                )
+            )
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private suspend fun insertLocalChat(entity: ChatEntity) {
+        chatDao.insertChat(entity)
     }
 
     private suspend fun ProducerScope<ChatEntity>.sendLocalMessage(
@@ -241,7 +249,7 @@ class ChatRepository @Inject constructor(
                             }
                         }
                     }
-                    /** Completion [Completion.ImageCompletion] & [Completion.ImageCompletion] */
+                    /** Completion [Completion.ImageCompletion] & [Completion.TextCompletion] */
                     else -> {
                         _isSendEnabled.update { true }
                     }

@@ -32,6 +32,18 @@ class MainVM @Inject constructor(
 
     private val signInState = MutableStateFlow<SignInState>(SignInState.Unknown)
 
+    val streamResponse = settingDs.streamResponse.stateIn(
+        viewModelScope,
+        SharingStarted.Lazily,
+        false
+    )
+
+    val initialMessageShown = settingDs.initialMessageShown.stateIn(
+        viewModelScope,
+        SharingStarted.Lazily,
+        null
+    )
+
     val state: StateFlow<MainScreenState> = combine(
         signInState,
         settingDs.getCurrentPlan,
@@ -47,6 +59,18 @@ class MainVM @Inject constructor(
     val lifecycleObserver: LifecycleObserver = billingRepository
 
     val newPurchase = billingRepository.newPurchase
+
+    fun updateInitialMessageShown() {
+        viewModelScope.launch {
+            settingDs.updateInitialMessageShown()
+        }
+    }
+
+    fun updateStreamResponse(value: Boolean) {
+        viewModelScope.launch {
+            settingDs.updateStreamResponse(value)
+        }
+    }
 
     fun updateLocalBillingState(newState: BillingRepository.SkuState) {
         billingRepository.updateLocalBillingState(newState)

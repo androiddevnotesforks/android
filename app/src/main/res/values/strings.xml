@@ -58,4 +58,7 @@
     <string name="ai_library">AI Library</string>
     <string name="upgrade">Upgrade</string>
     <string name="updated">Updated</string>
+    <string name="stream_response_setting">Stream Response</string>
+    <string name="stream_response_settings_desc">If on, assistant\'s message will arrive word by word.</string>
+    <string name="feedback_request">We would love to hear your feedback about HandyAI. Our team is excited to receive your input. Please note that our app is still in the early stages, so if you encounter any issues, Please use the feedback button located at the top of the app to let us know how we can improve. Thank you!</string>
 </resources>

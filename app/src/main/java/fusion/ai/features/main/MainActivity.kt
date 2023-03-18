@@ -1,5 +1,7 @@
 package fusion.ai.features.main
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,13 +11,27 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.rounded.Feedback
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,8 +41,10 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,16 +53,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.android.billingclient.api.BillingClient
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import fusion.ai.HandyNavHost
@@ -110,6 +131,9 @@ class MainActivity : ComponentActivity() {
             val snackbarHostState = remember { SnackbarHostState() }
             val newPurchase =
                 viewModel.newPurchase.collectAsStateWithLifecycle(initialValue = null).value
+            val streamResponse = viewModel.streamResponse.collectAsStateWithLifecycle().value
+            val initialMessageShown =
+                viewModel.initialMessageShown.collectAsStateWithLifecycle().value
 
             LaunchedEffect(key1 = newPurchase) {
                 if (newPurchase != null) {
@@ -174,6 +198,48 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                if (initialMessageShown == false) {
+                    AlertDialog(
+                        onDismissRequest = {
+                        },
+                        modifier = Modifier
+                            .clip(MaterialTheme.shapes.medium)
+                            .background(MaterialTheme.colorScheme.surface)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .padding(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Text(
+                                text = "Feedback Requested",
+                                fontFamily = InterFontFamily,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = .5.sp
+                            )
+
+                            Text(
+                                text = stringResource(R.string.feedback_request),
+                                fontFamily = InterFontFamily,
+                                color = MaterialTheme.colorScheme.onSurface.copy(.8f),
+                                fontSize = 14.sp
+                            )
+
+                            Button(
+                                onClick = {
+                                    viewModel.updateInitialMessageShown()
+                                },
+                                modifier = Modifier.align(Alignment.End)
+                            ) {
+                                Text(text = "Sure", fontFamily = InterFontFamily)
+                            }
+                        }
+                    }
+                }
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
@@ -228,6 +294,37 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
 
+                                IconButton(
+                                    onClick = {
+                                        val emailAddresses = arrayOf(
+                                            "fusiondevelopers90@gmail.com",
+                                            "kasemsm79@gmail.com"
+                                        )
+                                        val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                                            data =
+                                                Uri.parse("mailto:${emailAddresses.joinToString(",")}")
+                                        }
+                                        startActivity(
+                                            Intent.createChooser(
+                                                emailIntent,
+                                                "Send email using..."
+                                            )
+                                        )
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Feedback,
+                                        contentDescription = "Feedback"
+                                    )
+                                }
+
+                                IconButton(onClick = { updateIsMenuDisplayed(true) }) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Settings,
+                                        contentDescription = "Settings"
+                                    )
+                                }
+
                                 UserProfileView(
                                     currentUserProfile = firebaseAuth.currentUser?.photoUrl?.toString(),
                                     onUserProfileClick = {
@@ -237,11 +334,6 @@ class MainActivity : ComponentActivity() {
                                         }
                                     },
                                     signInState = state.signInState
-                                )
-
-                                MainDropDown(
-                                    isMenuDisplayed = isMenuDisplayed,
-                                    onChange = updateIsMenuDisplayed
                                 )
                             }
                         )
@@ -283,6 +375,13 @@ class MainActivity : ComponentActivity() {
                         SnackbarHost(snackbarHostState)
                     }
                 ) { innerPadding ->
+                    if (isMenuDisplayed) {
+                        SettingsDialog(
+                            onDismiss = { updateIsMenuDisplayed(false) },
+                            streamResponse = streamResponse,
+                            onStreamResponseChange = viewModel::updateStreamResponse
+                        )
+                    }
                     HandyNavHost(
                         navController = navController,
                         snackbarHostState = snackbarHostState,
@@ -293,6 +392,93 @@ class MainActivity : ComponentActivity() {
                             updateDisplayApiKeyDialog(true)
                         },
                         modifier = Modifier.padding(innerPadding)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@Composable
+fun SettingsDialog(
+    onDismiss: () -> Unit,
+    streamResponse: Boolean,
+    onStreamResponseChange: (Boolean) -> Unit
+) {
+    val context = LocalContext.current
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier
+            .clip(MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.surface)
+    ) {
+        LazyColumn(
+            contentPadding = PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            stickyHeader {
+                Text(
+                    text = "Settings",
+                    fontFamily = InterFontFamily,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = .5.sp
+                )
+            }
+            item {
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.stream_response_setting),
+                            fontFamily = InterFontFamily
+                        )
+                        Switch(checked = streamResponse, onCheckedChange = onStreamResponseChange)
+                    }
+                    Text(
+                        text = stringResource(R.string.stream_response_settings_desc),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(.6f)
+                    )
+                }
+            }
+            item {
+                Divider(color = MaterialTheme.colorScheme.onSurface.copy(.1f))
+            }
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Text(
+                        text = stringResource(R.string.privacy_policy_menu_title),
+                        fontFamily = InterFontFamily,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .clickable {
+                                context.openUrl(url = context.getString(R.string.privacy_policy_url))
+                            },
+                        fontSize = 12.sp
+                    )
+                    Text(
+                        text = stringResource(R.string.open_source_license_menu_title),
+                        fontFamily = InterFontFamily,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .clickable {
+                                val intent = Intent(
+                                    context,
+                                    OssLicensesMenuActivity::class.java
+                                )
+                                context.startActivity(intent)
+                            },
+                        fontSize = 12.sp
                     )
                 }
             }

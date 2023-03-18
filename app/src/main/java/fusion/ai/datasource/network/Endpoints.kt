@@ -32,6 +32,6 @@ sealed class Endpoints(private val url: String) {
     companion object {
         const val useLocalUrl = false
 
-        val BASE_URL = if (useLocalUrl) "192.168.0.103:8080/ktor" else BuildConfig.API_URL
+        val BASE_URL = if (useLocalUrl) "192.168.0.103:9766/ktor" else BuildConfig.API_URL
     }
 }

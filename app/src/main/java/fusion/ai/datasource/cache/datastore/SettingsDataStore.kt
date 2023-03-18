@@ -11,15 +11,17 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import fusion.ai.BuildConfig
 import fusion.ai.billing.Plan
-import java.io.IOException
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import java.io.IOException
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class SettingsDataStore @Inject constructor(
@@ -88,6 +90,42 @@ class SettingsDataStore @Inject constructor(
             } ?: Plan.Trial
         }
 
+    suspend fun updateStreamResponse(value: Boolean) {
+        app.dataStore.edit { preferences ->
+            preferences[STREAM_RESPONSE] = value
+        }
+    }
+
+    val streamResponse: Flow<Boolean> = app.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preference ->
+            preference[STREAM_RESPONSE] ?: true
+        }
+
+    suspend fun updateInitialMessageShown() {
+        app.dataStore.edit { preferences ->
+            preferences[INITIAL_MESSAGE_SHOWN] = initialMessageId
+        }
+    }
+
+    val initialMessageShown: Flow<Boolean?> = app.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preference ->
+            initialMessageId == preference[INITIAL_MESSAGE_SHOWN]
+        }
+
     companion object {
         private val USER_ID =
             stringPreferencesKey("user_id")
@@ -97,5 +135,12 @@ class SettingsDataStore @Inject constructor(
             booleanPreferencesKey("is_premium")
         private val API_KEY =
             stringPreferencesKey("api_key")
+        private val STREAM_RESPONSE =
+            booleanPreferencesKey("stream_response")
+        private val INITIAL_MESSAGE_SHOWN =
+            intPreferencesKey("initial_message_shown")
+
+        // Update the key to some random value when we want to show a new initial message (for eg: updated changelog)
+        private const val initialMessageId = BuildConfig.VERSION_CODE
     }
 }

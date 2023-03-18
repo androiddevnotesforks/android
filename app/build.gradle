@@ -24,8 +24,8 @@ android {
         applicationId "fusion.ai"
         minSdk 25
         targetSdk 33
-        versionCode 11
-        versionName "alpha-0.1.1"
+        versionCode 12
+        versionName "alpha-0.1.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

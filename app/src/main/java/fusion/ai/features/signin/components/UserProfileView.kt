@@ -58,7 +58,7 @@ fun UserProfileView(
 }
 
 private fun Modifier.profileModifier() = composed {
-    size(35.dp)
+    size(30.dp)
         .border(
             border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.onSecondaryContainer),
             shape = CircleShape
