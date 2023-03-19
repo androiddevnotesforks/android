@@ -38,12 +38,12 @@
     <string name="sign_in">Sign In</string>
     <string name="sign_in_required">Sign in is required in order to sync membership with our servers.</string>
     <string name="why_sign_in">Why Sign In</string>
-    <string name="purchase_successful">Purchase Successful</string>
+    <string name="purchase_successful">Purchase Successful. Please restart the app for membership to take effect</string>
     <string name="library_tab">Library</string>
     <string name="home_tab">Home</string>
     <string name="api_key_guide_url">https://github.com/Handy-AI/android/blob/main/ApiKeyGuide.md</string>
     <string name="get_api_key_url">https://platform.openai.com/account</string>
-    <string name="api_key_faqs_url">https://github.com/Handy-AI/android/blob/main/ApiKeyFaqs</string>
+    <string name="api_key_faqs_url">https://github.com/Handy-AI/android/blob/main/ApiKeyFaqs.md</string>
     <string name="get_api_key">Get API Key</string>
     <string name="guide">Guide</string>
     <string name="faq_s">FAQ\'s</string>
@@ -61,4 +61,5 @@
     <string name="stream_response_setting">Stream Response</string>
     <string name="stream_response_settings_desc">If on, assistant\'s message will arrive word by word.</string>
     <string name="feedback_request">We would love to hear your feedback about HandyAI. Our team is excited to receive your input. Please note that our app is still in the early stages, so if you encounter any issues, Please use the feedback button located at the top of the app to let us know how we can improve. Thank you!</string>
+    <string name="restart_app_message">Please restart the app for settings to take effect</string>
 </resources>

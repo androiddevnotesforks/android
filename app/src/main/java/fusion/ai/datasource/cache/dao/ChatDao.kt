@@ -14,7 +14,7 @@ interface ChatDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChat(chat: ChatEntity)
 
-    @Query("SELECT * FROM chat ORDER BY id DESC")
+    @Query("SELECT * FROM chat ORDER BY timestamp DESC")
     fun getChats(): Flow<List<ChatEntity>>
 
     @Update

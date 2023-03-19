@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -87,7 +88,7 @@ fun LibraryScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .then(modifier),
+            .then(Modifier.then(modifier)),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         if (state.isLoading) {
@@ -102,10 +103,10 @@ fun LibraryScreen(
                 }
             }
         }
-        items(state.presets) { preset ->
+        itemsIndexed(state.presets) { index, preset ->
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
                     text = preset.title,
@@ -331,6 +332,8 @@ fun LibraryScreen(
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(5.dp))
             }
         }
     }

@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -52,16 +54,17 @@ class ChatVM @Inject constructor(
 
     private val errorEvent = MutableStateFlow<ErrorEvent?>(null)
 
+    val apiKey = settingDs.getApiKey.distinctUntilChanged().filterNotNull()
+
     val state: StateFlow<ChatState> = combineFlows(
         combine(localMessages, chatRepository.getChats()) { a, b -> a + b },
         prompt,
         accountId,
         selectedTool,
-        settingDs.getApiKey,
-        settingDs.getCurrentPlan,
+        settingDs.getCurrentPlan.distinctUntilChanged(),
         maxPromptLength,
         errorEvent
-    ) { response, prompt, accountId, selectedTool, apiKey, userPlan, promptLength, errorEvent ->
+    ) { response, prompt, accountId, selectedTool, userPlan, promptLength, errorEvent ->
         maxPromptLength.update {
             when (userPlan) {
                 Plan.Trial -> 40
@@ -74,7 +77,6 @@ class ChatVM @Inject constructor(
             prompt = prompt ?: "",
             isAuthenticated = accountId != null,
             selectedTool = selectedTool,
-            apiKey = apiKey,
             maxPromptLength = promptLength,
             errorEvent = errorEvent
         )
@@ -104,16 +106,13 @@ class ChatVM @Inject constructor(
         selectedToolExtrasId.update { null }
     }
 
-    fun connectToChat() {
+    fun connectToChat(forceConnect: Boolean = false) {
         Timber.d("Re triggering")
         viewModelScope.launch {
-            settingDs.getCurrentPlan.collectLatest {
-                Timber.d("Re plan changed $it")
-                chatRepository.initiateSessionAndObserveMessage().collectLatest { chatEntity ->
-                    Timber.d("Re chat entity $it")
+            chatRepository.initiateSessionAndObserveMessage(forceConnect)
+                .collectLatest { chatEntity ->
                     localMessages.update { chatEntity?.let { listOf(it) } ?: listOf() }
                 }
-            }
         }
     }
 
@@ -123,13 +122,9 @@ class ChatVM @Inject constructor(
         }
     }
 
-    fun disconnect(reset: Boolean = false) {
+    private fun disconnect() {
         viewModelScope.launch {
-            if (reset) {
-                chatRepository.resetSession()
-            } else {
-                chatRepository.pauseSession()
-            }
+            chatRepository.resetSession()
         }
     }
 
@@ -164,6 +159,6 @@ class ChatVM @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        disconnect(reset = true)
+        disconnect()
     }
 }

@@ -25,7 +25,7 @@ fun HandyNavHost(
     modifier: Modifier = Modifier
 ) {
     NavHost(
-        modifier = modifier,
+        modifier = Modifier.then(modifier),
         navController = navController,
         startDestination = Screen.Chat.route
     ) {

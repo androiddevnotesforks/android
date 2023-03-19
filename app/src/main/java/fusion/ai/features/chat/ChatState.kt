@@ -9,7 +9,6 @@ data class ChatState(
     val prompt: String = "",
     val isAuthenticated: Boolean = false,
     val selectedTool: LibraryToolEntity? = null,
-    val apiKey: String? = null,
     val maxPromptLength: Int = 40,
     val errorEvent: ErrorEvent? = null
 )

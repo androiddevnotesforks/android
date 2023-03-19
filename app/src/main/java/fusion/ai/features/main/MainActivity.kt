@@ -81,6 +81,7 @@ import fusion.ai.navigate
 import fusion.ai.ui.theme.HandyAITheme
 import fusion.ai.ui.theme.InterFontFamily
 import fusion.ai.util.openUrl
+import fusion.ai.util.showToast
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -265,7 +266,7 @@ class MainActivity : ComponentActivity() {
                                                         vertical = 2.dp
                                                     ),
                                                 text = when (currentRoute) {
-                                                    Screen.Pricing.route -> "Feature Roadmap"
+                                                    Screen.Pricing.route -> "Roadmap"
                                                     else -> "Get Premium"
                                                 },
                                                 textSize = 14,
@@ -379,7 +380,12 @@ class MainActivity : ComponentActivity() {
                         SettingsDialog(
                             onDismiss = { updateIsMenuDisplayed(false) },
                             streamResponse = streamResponse,
-                            onStreamResponseChange = viewModel::updateStreamResponse
+                            onStreamResponseChange = { value ->
+                                viewModel.updateStreamResponse(value)
+                                context.showToast(
+                                    message = getString(R.string.restart_app_message)
+                                )
+                            }
                         )
                     }
                     HandyNavHost(
@@ -463,7 +469,8 @@ fun SettingsDialog(
                             .clip(RoundedCornerShape(4.dp))
                             .clickable {
                                 context.openUrl(url = context.getString(R.string.privacy_policy_url))
-                            },
+                            }
+                            .padding(4.dp),
                         fontSize = 12.sp
                     )
                     Text(
@@ -477,7 +484,8 @@ fun SettingsDialog(
                                     OssLicensesMenuActivity::class.java
                                 )
                                 context.startActivity(intent)
-                            },
+                            }
+                            .padding(4.dp),
                         fontSize = 12.sp
                     )
                 }

@@ -72,22 +72,27 @@ fun ChatScreen(
     viewModel: ChatVM = hiltViewModel()
 ) {
     val state = viewModel.state.collectAsStateWithLifecycle().value
+    val apiKey = viewModel.apiKey.collectAsStateWithLifecycle(initialValue = null).value
     val isSendEnabled = viewModel.isSendEnabled.collectAsStateWithLifecycle().value
     val context = LocalContext.current
     val listState = rememberLazyListState()
 
     val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(key1 = lifecycleOwner, state.isAuthenticated, state.apiKey) {
+    DisposableEffect(key1 = lifecycleOwner, state.isAuthenticated) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
                 viewModel.connectToChat()
-            } else if (event == Lifecycle.Event.ON_STOP) {
-                viewModel.disconnect()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    LaunchedEffect(key1 = apiKey) {
+        if (apiKey != null) {
+            viewModel.connectToChat(forceConnect = true)
         }
     }
 
@@ -293,7 +298,7 @@ fun ChatScreen(
                                     )
                                     AssistChip(
                                         onClick = {
-                                            context.openUrl(context.getString(R.string.api_key_guide_url))
+                                            context.openUrl(context.getString(R.string.api_key_faqs_url))
                                         },
                                         label = {
                                             Text(
@@ -418,7 +423,10 @@ fun ChatScreen(
                             )
                         }
                     },
-                    textStyle = MaterialTheme.typography.displayMedium.copy(letterSpacing = .4.sp, fontSize = 15.sp),
+                    textStyle = MaterialTheme.typography.displayMedium.copy(
+                        letterSpacing = .4.sp,
+                        fontSize = 15.sp
+                    ),
                     enabled = state.isAuthenticated,
                     maxLines = 5
                 )

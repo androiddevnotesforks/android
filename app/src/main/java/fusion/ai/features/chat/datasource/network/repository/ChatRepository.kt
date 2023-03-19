@@ -67,6 +67,7 @@ class ChatRepository @Inject constructor(
     private var errorMessageEmitted = false
     private val _isSendEnabled = MutableStateFlow(true)
     val isSendEnabled = _isSendEnabled.asStateFlow()
+    private var connectionInitiated = false
 
     suspend fun getLibraryTool(presetId: Int?, toolId: Int?): LibraryToolEntity? {
         if (presetId.isNullOrDefault() || toolId.isNullOrDefault()) {
@@ -79,7 +80,7 @@ class ChatRepository @Inject constructor(
 
     fun getChats() = chatDao.getChats()
 
-    fun initiateSessionAndObserveMessage() = channelFlow {
+    fun initiateSessionAndObserveMessage(forceReconnect: Boolean = false) = channelFlow {
         when (val userId = settingDs.getUserId.first()) {
             null -> {
                 sendLocalMessage(
@@ -91,12 +92,15 @@ class ChatRepository @Inject constructor(
 
             else -> {
                 send(null)
-                val connection = initSession(userId).getOrThrow()
-                if (connection) {
-                    observeMessages()
-                        .launchIn(this)
-                } else {
-                    Timber.d("Connection failed")
+                if (!connectionInitiated || forceReconnect) {
+                    Timber.d("Type N$connectionInitiated F$forceReconnect")
+                    connectionInitiated = initSession(userId).getOrThrow()
+                    if (connectionInitiated) {
+                        observeMessages()
+                            .launchIn(this)
+                    } else {
+                        Timber.d("Connection failed")
+                    }
                 }
             }
         }
@@ -203,7 +207,7 @@ class ChatRepository @Inject constructor(
                             type != MessageType.TextGeneration && type != MessageType.ImageGeneration
                         }
                         when (type) {
-                            MessageType.Welcome -> {
+                            MessageType.Welcome -> database.withTransaction {
                                 val entity = chatDao.getChatById(id = WELCOME_MESSAGE_ID)
                                 // we don't want to flood users with welcome message!
                                 if (entity != null) {
@@ -211,7 +215,7 @@ class ChatRepository @Inject constructor(
                                 } else {
                                     chatDao.insertChat(messageDto.toChatEntity())
                                 }
-                                return@mapNotNull entity
+                                return@withTransaction entity
                             }
                             MessageType.ApiKeyMissing -> {
                                 val entity = chatDao.getChatById(id = API_KEY_MISSING_ID)
@@ -259,9 +263,6 @@ class ChatRepository @Inject constructor(
             ?.flowOn(Dispatchers.IO) ?: flowOf()
     }
 
-    suspend fun pauseSession() =
-        socket?.close(CloseReason(CloseReason.Codes.NORMAL, PAUSE_SESSION_MESSAGE))
-
     suspend fun resetSession() =
         socket?.close(CloseReason(CloseReason.Codes.NORMAL, RESET_SESSION_MESSAGE))
 
@@ -302,7 +303,6 @@ class ChatRepository @Inject constructor(
     companion object {
         const val WELCOME_MESSAGE_ID = "Welcome"
         const val API_KEY_MISSING_ID = "ApiKeyMissing"
-        const val PAUSE_SESSION_MESSAGE = "Paused"
         const val RESET_SESSION_MESSAGE = "Reset"
     }
 }

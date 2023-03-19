@@ -32,7 +32,7 @@ data class ChatResponseDto(
             type = MessageType.valueOf(type),
             message = message?.toMessageEntity(),
             chatId = id,
-            timestamp = timeStamp,
+            timestamp = System.currentTimeMillis(),
             completion = Completion.valueOf(completion)
         )
     }
