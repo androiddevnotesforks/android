@@ -81,7 +81,11 @@ fun ChatScreen(
     DisposableEffect(key1 = lifecycleOwner, state.isAuthenticated) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
-                viewModel.connectToChat()
+                if (state.isAuthenticated) {
+                    viewModel.connectToChat()
+                } else {
+                    viewModel.sendSignInMessage()
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

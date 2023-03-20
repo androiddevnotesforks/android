@@ -7,6 +7,7 @@ import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import fusion.ai.billing.Plan
+import fusion.ai.billing.toPlan
 import fusion.ai.datasource.cache.datastore.SettingsDataStore
 import fusion.ai.features.signin.datasource.network.repository.UserRepository
 import kotlinx.coroutines.flow.first
@@ -37,12 +38,8 @@ class SyncUserWorker @AssistedInject constructor(
             val data = requireNotNull(response.data)
             data.apply {
                 settingsDataStore.updatePremiumStatus(
-                    status = plan != Plan.Trial.id,
-                    plan = when (plan) {
-                        Plan.Monthly.id -> Plan.Monthly
-                        Plan.Lifetime.id -> Plan.Lifetime
-                        else -> Plan.Trial
-                    }
+                    status = plan != Plan.Trial.token,
+                    plan = plan.toPlan()
                 )
             }
             Result.success()

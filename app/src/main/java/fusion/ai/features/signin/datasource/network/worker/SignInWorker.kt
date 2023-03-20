@@ -8,6 +8,7 @@ import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import fusion.ai.billing.Plan
+import fusion.ai.billing.toPlan
 import fusion.ai.datasource.cache.datastore.SettingsDataStore
 import fusion.ai.features.signin.datasource.network.repository.UserRepository
 import timber.log.Timber
@@ -25,6 +26,7 @@ class SignInWorker @AssistedInject constructor(
         if (runAttemptCount >= MAXIMUM_RETRIES) return Result.failure()
 
         val tokenId = inputData.getString(TOKEN_KEY) ?: return Result.failure()
+        Timber.d("Token $tokenId")
 
         val response = userRepository.verifyUser(tokenId).getOrElse {
             Timber.e(it)
@@ -39,12 +41,8 @@ class SignInWorker @AssistedInject constructor(
             data.apply {
                 settingsDataStore.setUserId(uid)
                 settingsDataStore.updatePremiumStatus(
-                    status = plan != Plan.Trial.id,
-                    plan = when (plan) {
-                        Plan.Monthly.id -> Plan.Monthly
-                        Plan.Lifetime.id -> Plan.Lifetime
-                        else -> Plan.Trial
-                    }
+                    status = plan != Plan.Trial.token,
+                    plan = plan.toPlan()
                 )
             }
             Result.success()

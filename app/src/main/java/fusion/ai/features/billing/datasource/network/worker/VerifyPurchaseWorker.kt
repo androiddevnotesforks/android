@@ -12,6 +12,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import fusion.ai.billing.BillingRepository
 import fusion.ai.billing.Plan
+import fusion.ai.billing.toPlan
 import fusion.ai.datasource.cache.datastore.SettingsDataStore
 import fusion.ai.datasource.network.Endpoints
 import fusion.ai.features.billing.datasource.network.dto.VerifyPurchaseBody
@@ -67,12 +68,8 @@ class VerifyPurchaseWorker @AssistedInject constructor(
                 val userData = requireNotNull(purchaseResult.handyUser?.data)
                 Timber.d("Products verified $it")
                 settingsDataStore.updatePremiumStatus(
-                    status = userData.plan != Plan.Trial.id,
-                    plan = when (userData.plan) {
-                        Plan.Monthly.id -> Plan.Monthly
-                        Plan.Lifetime.id -> Plan.Lifetime
-                        else -> Plan.Trial
-                    }
+                    status = userData.plan != Plan.Trial.token,
+                    plan = userData.plan.toPlan()
                 )
                 billingRepository.setProductState(
                     it,

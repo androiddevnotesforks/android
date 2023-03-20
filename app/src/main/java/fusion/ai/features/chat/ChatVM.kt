@@ -4,11 +4,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import fusion.ai.R
 import fusion.ai.billing.Plan
 import fusion.ai.datasource.cache.datastore.SettingsDataStore
 import fusion.ai.datasource.cache.entity.ChatEntity
 import fusion.ai.datasource.cache.entity.LibraryToolEntity
+import fusion.ai.datasource.cache.entity.MessageType
 import fusion.ai.features.chat.datasource.network.repository.ChatRepository
 import fusion.ai.features.chat.datasource.network.request.OutgoingExtras
 import fusion.ai.features.chat.datasource.network.request.OutgoingMessage
@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -32,7 +31,7 @@ import javax.inject.Inject
 class ChatVM @Inject constructor(
     private val chatRepository: ChatRepository,
     private val savedStateHandle: SavedStateHandle,
-    private val settingDs: SettingsDataStore
+    settingDs: SettingsDataStore
 ) : ViewModel() {
 
     private val prompt = MutableStateFlow<String?>(null)
@@ -69,7 +68,7 @@ class ChatVM @Inject constructor(
             when (userPlan) {
                 Plan.Trial -> 40
                 Plan.Monthly -> 100
-                Plan.Lifetime -> 2000
+                Plan.ThreeMonthly -> 2000
             }
         }
         ChatState(
@@ -134,13 +133,6 @@ class ChatVM @Inject constructor(
         val selectedToolExtrasId = selectedToolExtrasId.value
 
         viewModelScope.launch {
-            val currentPlan = settingDs.getCurrentPlan.first()
-            val apiKey = settingDs.getApiKey.first()
-            if (currentPlan == Plan.Lifetime && apiKey == null) {
-                errorEvent.emit(ErrorEvent(message = R.string.api_key_missing))
-                return@launch
-            }
-
             if (!prompt.isNullOrBlank()) {
                 val request = if (selectedToolExtrasId != null) {
                     OutgoingMessage(
@@ -160,5 +152,16 @@ class ChatVM @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         disconnect()
+    }
+
+    fun sendSignInMessage() {
+        viewModelScope.launch {
+            chatRepository.sendSignInMessage(
+                message = "\uD83D\uDC4B Hey, Please sign in to start using HandyAI.",
+                MessageType.SignInRequest
+            ).collectLatest { chatEntity ->
+                localMessages.update { chatEntity?.let { listOf(it) } ?: listOf() }
+            }
+        }
     }
 }

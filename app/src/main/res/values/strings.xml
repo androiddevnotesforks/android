@@ -48,7 +48,7 @@
     <string name="guide">Guide</string>
     <string name="faq_s">FAQ\'s</string>
     <string name="api_key_missing">API Key is missing</string>
-    <string name="lifetime_disclaimer">You get lifetime access to HandyAI App, including all the features listed above and you pay directly to OpenAI for ChatGPT. You will need to generate your API key &amp; add it in order to use ChatGPT in HandyAI app (saved locally). You can get one for free by following the guide we created.</string>
+    <string name="lifetime_disclaimer">Pay directly to OpenAI for ChatGPT.\nYou will need to generate your API key &amp; add it (saved locally). You can get one for free by following the guide we created.</string>
     <string name="get_handyai_premium">Get HandyAI Premium</string>
     <string name="api_key_already_setup">You have already set up an API Key</string>
     <string name="api_key_disclaimer">Your API key is stored locally, it means that whenever you log in with the same account on another device, you have to re-add it.</string>
@@ -60,6 +60,6 @@
     <string name="updated">Updated</string>
     <string name="stream_response_setting">Stream Response</string>
     <string name="stream_response_settings_desc">If on, assistant\'s message will arrive word by word.</string>
-    <string name="feedback_request">We would love to hear your feedback about HandyAI. Our team is excited to receive your input. Please note that our app is still in the early stages, so if you encounter any issues, Please use the feedback button located at the top of the app to let us know how we can improve. Thank you!</string>
+    <string name="feedback_request">• New and affordable Pricing Model\n• Fixed an issue where the assistant chat was showing up in the wrong place in the chat list\n• Fixed a disconnection problem that happened when the app was in the background \n\nWe would love to hear your feedback about HandyAI, Please use the feedback button located at the top of the app to let us know how we can improve. Thank you!</string>
     <string name="restart_app_message">Please restart the app for settings to take effect</string>
 </resources>

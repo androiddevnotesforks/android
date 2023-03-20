@@ -48,8 +48,6 @@ import timber.log.Timber
 
 class BillingRepository(
     application: Application,
-    /* Premium status should only be updated via server */
-//    private val billingStore: BillingStore,
     private val purchaseVerifier: PurchaseVerifier
 ) : DefaultLifecycleObserver, PurchasesUpdatedListener, BillingClientStateListener {
 
@@ -79,47 +77,19 @@ class BillingRepository(
     val localBillingState = MutableStateFlow(SkuState.UNKNOWN)
 
     /**
-     * Flow of the [premium membership] SKU's [monthlyPrice] and [lifetimePrice]
+     * Flow of the [premium membership] SKU's [monthlyPrice] and [threeMonthlyPrice]
      */
     val monthlyPrice
-        get() = getSubscriptionPrice(MonthlyToken).distinctUntilChanged()
+        get() = getSubscriptionPrice(Plan.Monthly.token).distinctUntilChanged()
 
-    val lifetimePrice
-        get() = getInAppPurchasePrice().distinctUntilChanged()
+    val threeMonthlyPrice
+        get() = getSubscriptionPrice(Plan.ThreeMonthly.token).distinctUntilChanged()
 
     /**
      * Flow of the [premium membership][PurchaseType.Premium] SKU's [SkuState]
      */
     val subscriptionState
-        get() = getSkuState(SKU_SUBS_Pro).distinctUntilChanged()
-
-
-    /**
-     * Flow of the [premium membership][PurchaseType.Lifetime] SKU's [SkuState]
-     */
-    val lifetimePurchaseState
-        get() = getSkuState(SKU_INAPP_OneTime).distinctUntilChanged()
-
-    /**
-     * Returns whether or not the user has purchased premium membership. It does this by returning
-     * a Flow that returns true if the SKU is in the [PURCHASED][SkuState.PURCHASED] state and
-     * the [Purchase] has been acknowledged.
-     */
-//    val hasSubscribed
-//        get() = combine(subscriptionState, lifetimePurchaseState) { subscription, iap ->
-//            log { "$TAG [subscriptionState, SUB & IAP] $subscription $iap" }
-//
-//            if (subscription == SkuState.UNKNOWN || iap == SkuState.UNKNOWN) {
-//                // Purchases haven't been processed yet, so fallback to dataStore
-//                billingStore.getPremiumStatus().first()
-//            } else {
-//                subscription == SkuState.PURCHASED_AND_ACKNOWLEDGED || iap == SkuState.PURCHASED_AND_ACKNOWLEDGED
-//            }
-//        }.distinctUntilChanged().onEach {
-//            log { "$TAG [hasSubscribed] saving to DataStore: $it" }
-//            // Save, because we can guarantee that the device is online and that the purchase check has succeeded
-//            billingStore.updatePremiumStatus(it)
-//        }
+        get() = getSkuState().distinctUntilChanged()
 
     /**
      * A Flow that reports on purchases that are in the [PurchaseState.PENDING]
@@ -156,26 +126,6 @@ class BillingRepository(
     private val _newPurchase = MutableSharedFlow<Pair<Int, Purchase?>>(extraBufferCapacity = 1)
     val newPurchase = _newPurchase.distinctUntilChanged().onEach { (responseCode, purchase) ->
         log { "$TAG, [newPurchaseFlow] $responseCode: ${purchase?.products}" }
-
-        when (responseCode) {
-            BillingResponseCode.OK -> {
-                Timber.d("updateProStatus: $purchase")
-//                billingStore.updatePremiumStatus(purchase != null)
-            }
-
-            BillingResponseCode.ITEM_ALREADY_OWNED -> {
-                // This is tricky to deal with. Even pending purchases show up as "items already owned",
-                // so we can't grant entitlement i.e. set [PRO] to `true`.
-                // A message should be shown to the user informing them they may have pending purchases.
-                // This case will be handled by observing the pending purchases LiveData.
-                // Entitlement is being granted by observing to the in-app SKU details list LiveData anyway.
-            }
-
-            else -> {
-//                billingStore.updatePremiumStatus(false)
-                Unit
-            }
-        }
     }
 
     /**
@@ -203,8 +153,7 @@ class BillingRepository(
         // Initialize flows for all known SKUs, so that state & details can be
         // observed in ViewModels. This repository exposes mappings that are
         // more useful for the rest of the application (via ViewModels).
-        addSkuFlows(SUB_SKUS)
-        addSkuFlows(INAPP_SKUS)
+        addSkuFlows()
 
         billingClient.startConnection(this)
     }
@@ -214,7 +163,7 @@ class BillingRepository(
      *
      * @param skuList a List<String> of SKUs representing purchases and subscriptions
      */
-    private fun addSkuFlows(skuList: List<String>) =
+    private fun addSkuFlows(skuList: List<String> = SUB_SKUS) =
         skuList.forEach { sku ->
             val skuState = MutableStateFlow(SkuState.UNKNOWN)
             val details = MutableStateFlow<ProductDetails?>(null)
@@ -313,12 +262,7 @@ class BillingRepository(
      * Note that the billing client only returns active purchases.
      */
     private suspend fun refreshPurchases() = withContext(Dispatchers.IO) {
-        launch {
-            refreshSubscriptions()
-        }
-        launch {
-            refreshOneTimePurchase()
-        }
+        refreshSubscriptions()
     }
 
     private suspend fun refreshSubscriptions() {
@@ -342,27 +286,6 @@ class BillingRepository(
         log { "$TAG, [refreshSubscriptions] finish" }
     }
 
-    private suspend fun refreshOneTimePurchase() {
-        log { "$TAG [refreshOneTimePurchase] start" }
-
-        val purchasesResult = billingClient.queryPurchasesAsync(
-            QueryPurchasesParams.newBuilder()
-                .setProductType(BillingClient.ProductType.INAPP)
-                .build()
-        )
-        val billingResult = purchasesResult.billingResult
-        val responseCode = billingResult.responseCode
-        val debugMessage = billingResult.debugMessage
-        if (responseCode == BillingResponseCode.OK) {
-            log { "$TAG [refreshOneTimePurchase] Response code OK ${purchasesResult.purchasesList}" }
-            processPurchaseList(purchasesResult.purchasesList, INAPP_SKUS)
-        } else {
-            log { "$TAG [refreshOneTimePurchase] INAPP $responseCode: $debugMessage" }
-        }
-
-        log { "$TAG, [refreshOneTimePurchase] finish" }
-    }
-
     fun makePurchase(activity: Activity, sku: String, plan: Plan) {
         launchBillingFlow(activity, sku, plan)
     }
@@ -383,37 +306,26 @@ class BillingRepository(
         sku: String,
         plan: Plan
     ) = productDetailsMap[sku]?.value?.let { details ->
-        val builder: BillingFlowParams.Builder
-        if (plan == Plan.Lifetime) {
-            builder = BillingFlowParams.newBuilder()
-            builder.setProductDetailsParamsList(
-                listOf(
-                    ProductDetailsParams.newBuilder()
-                        .setProductDetails(details)
-                        .build()
-                )
-            )
-        } else {
-            val offerToken = details.subscriptionOfferDetails?.find { product ->
-                product.basePlanId == when (plan) {
-                    Plan.Monthly -> MonthlyToken
-                    else -> throw Exception()
-                }
-            }?.offerToken ?: kotlin.run {
-                Timber.e("Offer Token null")
-                return@let
+        val offerToken = details.subscriptionOfferDetails?.find { product ->
+            product.basePlanId == when (plan) {
+                Plan.Monthly -> Plan.Monthly.token
+                Plan.ThreeMonthly -> Plan.ThreeMonthly.token
+                else -> throw Exception()
             }
-
-            builder = BillingFlowParams.newBuilder()
-            builder.setProductDetailsParamsList(
-                listOf(
-                    ProductDetailsParams.newBuilder()
-                        .setProductDetails(details)
-                        .setOfferToken(offerToken)
-                        .build()
-                )
-            )
+        }?.offerToken ?: kotlin.run {
+            Timber.e("Offer Token null")
+            return@let
         }
+
+        val builder: BillingFlowParams.Builder = BillingFlowParams.newBuilder()
+        builder.setProductDetailsParamsList(
+            listOf(
+                ProductDetailsParams.newBuilder()
+                    .setProductDetails(details)
+                    .setOfferToken(offerToken)
+                    .build()
+            )
+        )
 
         mainScope.launch {
             val result = billingClient.launchBillingFlow(activity, builder.build())
@@ -480,12 +392,7 @@ class BillingRepository(
      * required to make a purchase.
      */
     private suspend fun queryProductDetails() = withContext(Dispatchers.IO) {
-        launch {
-            querySubscriptionDetails()
-        }
-        launch {
-            queryOneTimePurchaseDetails()
-        }
+        querySubscriptionDetails()
     }
 
     private suspend fun querySubscriptionDetails() {
@@ -495,27 +402,6 @@ class BillingRepository(
                     QueryProductDetailsParams.Product.newBuilder()
                         .setProductId(it)
                         .setProductType(BillingClient.ProductType.SUBS)
-                        .build()
-                }
-            )
-        }
-
-        billingClient.queryProductDetails(
-            QueryProductDetailsParams.newBuilder()
-                .setProductList(products)
-                .build()
-        ).also {
-            onProductDetailsResponse(it.billingResult, it.productDetailsList)
-        }
-    }
-
-    private suspend fun queryOneTimePurchaseDetails() {
-        val products = buildList {
-            addAll(
-                INAPP_SKUS.map {
-                    QueryProductDetailsParams.Product.newBuilder()
-                        .setProductId(it)
-                        .setProductType(BillingClient.ProductType.INAPP)
                         .build()
                 }
             )
@@ -621,6 +507,7 @@ class BillingRepository(
                         purchase.orderId.isEmpty() && purchase.isAcknowledged
 
                     /** Promotional purchase are already acknowledged */
+                    log { "[purchase] $purchase" }
                     if (!purchase.isAcknowledged || isPromotionalPurchase) {
                         log { "Promotional Purchase $isPromotionalPurchase" }
                         try {
@@ -679,13 +566,7 @@ class BillingRepository(
         log { "$TAG, [getSubscriptionPrice] unknown SKU: $SKU_SUBS_Pro" }
     }
 
-    private fun getInAppPurchasePrice() = productDetailsMap[SKU_INAPP_OneTime]?.map {
-        it?.oneTimePurchaseOfferDetails?.formattedPrice
-    } ?: flowOf(null).also {
-        log { "$TAG, [getOneTimePrice] unknown SKU: $SKU_INAPP_OneTime" }
-    }
-
-    private fun getSkuState(sku: String) = skuStateMap[sku] ?: flowOf(SkuState.UNKNOWN).also {
+    private fun getSkuState(sku: String = SKU_SUBS_Pro) = skuStateMap[sku] ?: flowOf(SkuState.UNKNOWN).also {
         log { "$TAG, [getSkuState] unknown SKU: $sku" }
     }
 
@@ -708,12 +589,7 @@ class BillingRepository(
     @Suppress("Unused")
     fun debugConsume() = CoroutineScope(Dispatchers.IO).launch {
         if (BuildConfig.DEBUG) {
-            launch {
-                consumeInAppPurchase(SKU_SUBS_Pro)
-            }
-            launch {
-                consumeInAppPurchase(SKU_INAPP_OneTime)
-            }
+            consumeInAppPurchase(SKU_SUBS_Pro)
         }
     }
 
@@ -750,32 +626,6 @@ class BillingRepository(
                     log { "$TAG, [consumeInAppPurchase] unknown SKU: $sku" }
                 }
             }
-
-            SKU_INAPP_OneTime -> {
-                billingClient.queryPurchasesAsync(
-                    QueryPurchasesParams.newBuilder()
-                        .setProductType(BillingClient.ProductType.INAPP)
-                        .build()
-                ).let { result ->
-                    val billingResult = result.billingResult
-                    val purchasesList = result.purchasesList
-                    val responseCode = billingResult.responseCode
-                    if (responseCode == BillingResponseCode.OK) {
-                        purchasesList.forEach { purchase ->
-                            // For right now any bundle of SKUs must all be consumable
-                            purchase.products.find { it == sku }?.also {
-                                consumePurchase(purchase)
-                                return@let
-                            }
-                        }
-                    } else {
-                        log { "$TAG, [consumeInAppPurchase] $responseCode: ${billingResult.debugMessage}" }
-                    }
-
-                    log { "$TAG, [consumeInAppPurchase] unknown SKU: $sku" }
-                }
-            }
-
             else -> throw IllegalAccessException()
         }
     }
@@ -865,10 +715,8 @@ class BillingRepository(
         private const val PRODUCT_DETAILS_RE_QUERY_TIME = 1000L * 60L/* * 60L * 4L*/
 
         private val SKU_SUBS_Pro = PurchaseType.Premium.sku
-        private val SKU_INAPP_OneTime = PurchaseType.Lifetime.sku
 
         private val SUB_SKUS = listOf(SKU_SUBS_Pro)
-        private val INAPP_SKUS = listOf(SKU_INAPP_OneTime)
 
         private val handler = Handler(Looper.getMainLooper())
 

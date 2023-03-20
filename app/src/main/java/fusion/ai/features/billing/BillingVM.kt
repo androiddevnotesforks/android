@@ -39,11 +39,10 @@ class BillingVM @Inject constructor(
         onClick,
         merge(
             billingRepository.localBillingState,
-            billingRepository.subscriptionState,
-            billingRepository.lifetimePurchaseState
+            billingRepository.subscriptionState
         ),
         billingRepository.monthlyPrice,
-        billingRepository.lifetimePrice,
+        billingRepository.threeMonthlyPrice,
         errorEvent
     ) { enabled, summary, onClick, subscriptionState, monthlyPricing, lifetimePricing, errorEvent ->
         BillingVMState(
@@ -53,7 +52,7 @@ class BillingVM @Inject constructor(
             billingState = subscriptionState,
             billingPricing = ProductPricing(
                 monthly = monthlyPricing,
-                lifetime = lifetimePricing
+                threeMonthly = lifetimePricing
             ),
             errorEvent = errorEvent
         )

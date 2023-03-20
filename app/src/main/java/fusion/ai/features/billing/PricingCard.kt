@@ -77,8 +77,8 @@ fun PricingCard(
 
 fun Plan.getName(): String {
     return when (this) {
-        Plan.Monthly -> "Monthly Subscription"
-        Plan.Lifetime -> "Lifetime Access**"
+        Plan.Monthly -> "Unlimited Monthly Subscription"
+        Plan.ThreeMonthly -> "Your Own API Key + 3 Month Subscription**"
         Plan.Trial -> "Trial Plan"
     }
 }
@@ -90,22 +90,16 @@ fun Plan.getRewards(): List<Features> {
             Features("Fast & Secure"),
             Features("Access to all presets in library"),
             Features("GPT remembers your previous 3 chats"),
-            Features("25 Image Generation"),
-            Features("Create Presets", isAvailable = false),
-            Features("Handy Widget", isAvailable = false)
+            Features("25 Image Generation")
         )
 
-        Plan.Lifetime -> listOf(
-            Features("API key stored locally"),
-            Features("Early access to cutting edge features"),
+        Plan.ThreeMonthly -> listOf(
+            Features("You pay directly to OpenAI\n(1000s of Chat is ~ $1)"),
             Features("Fast & Secure"),
+            Features("Access to all presets in library"),
             Features("GPT remembers your previous 10 chats"),
-            Features("100 Image Generation"),
-            Features("Send and receive up-to 4000 words"),
-            Features("Access to our private discord server for queries"),
-            Features("Create Presets", isAvailable = false),
-            Features("Handy Widget", isAvailable = false),
-            Features("Customize assistant's reply length", isAvailable = false)
+            Features("50 Image Generation"),
+            Features("Send and receive up-to 4000 words")
         )
 
         else -> listOf()

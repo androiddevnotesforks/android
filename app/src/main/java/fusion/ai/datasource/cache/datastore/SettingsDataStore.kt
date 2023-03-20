@@ -69,7 +69,7 @@ class SettingsDataStore @Inject constructor(
     suspend fun updatePremiumStatus(status: Boolean, plan: Plan) {
         app.dataStore.edit { preferences ->
             preferences[IS_PREMIUM] = status
-            preferences[CURRENT_PLAN] = plan.id
+            preferences[CURRENT_PLAN] = plan.token
         }
     }
 
@@ -83,8 +83,8 @@ class SettingsDataStore @Inject constructor(
         }.map { preference ->
             preference[CURRENT_PLAN]?.let {
                 when (it) {
-                    Plan.Monthly.id -> Plan.Monthly
-                    Plan.Lifetime.id -> Plan.Lifetime
+                    Plan.Monthly.token -> Plan.Monthly
+                    Plan.ThreeMonthly.token -> Plan.ThreeMonthly
                     else -> Plan.Trial
                 }
             } ?: Plan.Trial
@@ -105,7 +105,7 @@ class SettingsDataStore @Inject constructor(
             }
         }
         .map { preference ->
-            preference[STREAM_RESPONSE] ?: true
+            preference[STREAM_RESPONSE] ?: false
         }
 
     suspend fun updateInitialMessageShown() {

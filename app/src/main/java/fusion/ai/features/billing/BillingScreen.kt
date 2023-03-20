@@ -47,7 +47,6 @@ import fusion.ai.billing.toName
 import fusion.ai.features.billing.Features.Companion.reformedText
 import fusion.ai.ui.theme.InterFontFamily
 import fusion.ai.util.openUrl
-import timber.log.Timber
 
 @Composable
 fun BillingScreen(
@@ -56,7 +55,7 @@ fun BillingScreen(
     viewModel: BillingVM = hiltViewModel()
 ) {
     val (selectedPlan, updateSelectedPlan) = rememberSaveable {
-        mutableStateOf(Plan.Lifetime)
+        mutableStateOf(Plan.ThreeMonthly)
     }
     val context = LocalContext.current
 
@@ -79,7 +78,6 @@ fun BillingScreen(
         state.summary,
         state.billingPricing
     ) {
-        Timber.d("State triggered $state")
         when (state.billingState) {
             BillingRepository.SkuState.UNKNOWN -> {
                 viewModel.updateEnable(false)
@@ -90,7 +88,7 @@ fun BillingScreen(
             BillingRepository.SkuState.NOT_PURCHASED -> {
                 viewModel.updateEnable(true)
                 viewModel.updateSummary(
-                    if (selectedPlan != Plan.Lifetime) {
+                    if (selectedPlan != Plan.ThreeMonthly) {
                         context.getString(
                             R.string.settings_buy_button_subscribe,
                             selectedPlan.toName()
@@ -108,7 +106,7 @@ fun BillingScreen(
                     // Something weird here
                     viewModel.makePurchase(
                         (context as Activity),
-                        type = if (selectedPlan == Plan.Lifetime) PurchaseType.Lifetime else PurchaseType.Premium,
+                        type = PurchaseType.Premium,
                         selectedPlan
                     )
                 }
@@ -171,7 +169,7 @@ fun BillingScreen(
         }
 
         item {
-            if (selectedPlan == Plan.Lifetime) {
+            if (selectedPlan == Plan.ThreeMonthly) {
                 ElevatedCard(
                     modifier = Modifier
                         .fillMaxWidth()

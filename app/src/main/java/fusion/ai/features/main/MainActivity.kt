@@ -15,6 +15,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -68,6 +69,7 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
+import fusion.ai.BuildConfig
 import fusion.ai.HandyNavHost
 import fusion.ai.R
 import fusion.ai.billing.BillingRepository
@@ -201,41 +203,49 @@ class MainActivity : ComponentActivity() {
 
                 if (initialMessageShown == false) {
                     AlertDialog(
-                        onDismissRequest = {
-                        },
+                        onDismissRequest = { /** Can only be dismissed by the button */ },
                         modifier = Modifier
                             .clip(MaterialTheme.shapes.medium)
                             .background(MaterialTheme.colorScheme.surface)
                     ) {
-                        Column(
+                        LazyColumn(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .wrapContentHeight()
                                 .padding(10.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Text(
-                                text = "Feedback Requested",
-                                fontFamily = InterFontFamily,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                letterSpacing = .5.sp
-                            )
+                            item {
+                                Text(
+                                    text = "Changelog ${BuildConfig.VERSION_NAME}",
+                                    fontFamily = InterFontFamily,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    letterSpacing = .5.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
 
-                            Text(
-                                text = stringResource(R.string.feedback_request),
-                                fontFamily = InterFontFamily,
-                                color = MaterialTheme.colorScheme.onSurface.copy(.8f),
-                                fontSize = 14.sp
-                            )
+                            item {
+                                Text(
+                                    text = stringResource(R.string.feedback_request),
+                                    fontFamily = InterFontFamily,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(.8f),
+                                    fontSize = 14.sp
+                                )
+                            }
 
-                            Button(
-                                onClick = {
-                                    viewModel.updateInitialMessageShown()
-                                },
-                                modifier = Modifier.align(Alignment.End)
-                            ) {
-                                Text(text = "Sure", fontFamily = InterFontFamily)
+                            item {
+                                Box(modifier = Modifier.fillMaxWidth()) {
+                                    Button(
+                                        onClick = {
+                                            viewModel.updateInitialMessageShown()
+                                        },
+                                        modifier = Modifier.align(Alignment.BottomEnd)
+                                    ) {
+                                        Text(text = "Sure", fontFamily = InterFontFamily)
+                                    }
+                                }
                             }
                         }
                     }
@@ -286,7 +296,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             actions = {
-                                if (state.userPlan == Plan.Lifetime) {
+                                if (state.userPlan == Plan.ThreeMonthly) {
                                     IconButton(onClick = { updateDisplayApiKeyDialog(true) }) {
                                         Icon(
                                             imageVector = Icons.Default.Key,

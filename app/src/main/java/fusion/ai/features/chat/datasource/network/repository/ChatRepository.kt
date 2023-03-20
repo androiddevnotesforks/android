@@ -80,6 +80,26 @@ class ChatRepository @Inject constructor(
 
     fun getChats() = chatDao.getChats()
 
+    fun sendSignInMessage(
+        message: String,
+        type: MessageType
+    ): Flow<ChatEntity?> = flow {
+        if (type == MessageType.SignInRequest && !signInMessageSent) {
+            emit(
+                ChatEntity(
+                    type = type,
+                    message = MessageEntity(
+                        message,
+                        role = MessageRole.Assistant
+                    ),
+                    chatId = UUID.randomUUID().toString(),
+                    timestamp = System.currentTimeMillis()
+                )
+            )
+            signInMessageSent = true
+        }
+    }
+
     fun initiateSessionAndObserveMessage(forceReconnect: Boolean = false) = channelFlow {
         when (val userId = settingDs.getUserId.first()) {
             null -> {
@@ -120,7 +140,7 @@ class ChatRepository @Inject constructor(
 
     private suspend fun initSession(id: String): Result<Boolean> {
         Timber.d("User id $id")
-        val attachApiKey = settingDs.getCurrentPlan.first() == Plan.Lifetime
+        val attachApiKey = settingDs.getCurrentPlan.first() == Plan.ThreeMonthly
         val apiKey = if (attachApiKey) settingDs.getApiKey.first() else null
         val streamResponse = settingDs.streamResponse.first()
         Timber.d("Initiating connection $attachApiKey")
