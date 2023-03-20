@@ -1,14 +1,21 @@
 # API Key FAQS
 
+* **How do I obtain Open AI API Key?**
+
+Refer this [Guide](https://github.com/Handy-AI/android/blob/main/ApiKeyGuide.md)
+
+
+___
+
 * **How much does OpenAI cost?**
 
 The ChatGPT API is very affordable. A normal chat conversation of about 1000 characters would only cost about $0.001, which is less than a cent. You can have thousands of chats and it would only cost you around $1. Checkout the official pricing [here](https://openai.com/pricing#language-models).
 
 
 ___
-* **Why do we charge a one time payment?**
+* **Why do we charge for subscription despite if I pay directly to OpenAI?**
 
-The one time payment is for the preset in the library that are available in the app. Additional features include a Handy Widget (Coming soon), Customize assistant's reply etc. All the conversations are processed on our servers and only kept in memory until the app is open. (Check the below question for additional information)
+The subscription is for the available presets in the library that are available in the app. Additional features include a Handy Widget (Coming soon), Customize assistant's reply etc. All the conversations are processed on our servers and only kept in memory until the app is open. (Check the below question for additional information)
 
 
 ___
