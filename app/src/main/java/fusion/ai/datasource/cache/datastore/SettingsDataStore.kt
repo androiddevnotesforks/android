@@ -16,6 +16,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import fusion.ai.BuildConfig
 import fusion.ai.billing.Plan
+import fusion.ai.billing.toPlan
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -81,13 +82,7 @@ class SettingsDataStore @Inject constructor(
                 throw exception
             }
         }.map { preference ->
-            preference[CURRENT_PLAN]?.let {
-                when (it) {
-                    Plan.Monthly.token -> Plan.Monthly
-                    Plan.ThreeMonthly.token -> Plan.ThreeMonthly
-                    else -> Plan.Trial
-                }
-            } ?: Plan.Trial
+            preference[CURRENT_PLAN]?.toPlan() ?: Plan.Trial
         }
 
     suspend fun updateStreamResponse(value: Boolean) {

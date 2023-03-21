@@ -69,6 +69,7 @@ class ChatVM @Inject constructor(
                 Plan.Trial -> 40
                 Plan.Monthly -> 100
                 Plan.ThreeMonthly -> 2000
+                Plan.PromotionalPurchase -> 1000
             }
         }
         ChatState(

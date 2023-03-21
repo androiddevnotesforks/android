@@ -42,6 +42,7 @@ class SyncUserWorker @AssistedInject constructor(
                     plan = plan.toPlan()
                 )
             }
+            Timber.d("Current Plan ${data.plan.toPlan()}")
             Result.success()
         } else {
             Result.failure()

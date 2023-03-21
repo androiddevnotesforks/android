@@ -11,9 +11,10 @@ enum class PurchaseType(
 
 enum class Plan(val token: String) {
     Monthly("monthly"),
+    Trial("Trial"),
     /** Users use their own API Key */
     ThreeMonthly("3-month-api-key"),
-    Trial("Trial")
+    PromotionalPurchase("promotional_purchase")
 }
 
 val planList = listOf(Plan.Monthly, Plan.ThreeMonthly)
@@ -22,7 +23,7 @@ fun ProductPricing.getAccordingly(plan: Plan): String? {
     return when (plan) {
         Plan.Monthly -> monthly
         Plan.ThreeMonthly -> threeMonthly
-        Plan.Trial -> null
+        else -> null
     }
 }
 
@@ -36,6 +37,7 @@ fun Plan.toName(): String {
         Plan.ThreeMonthly -> "Three Month plan"
         Plan.Monthly -> "Monthly plan"
         Plan.Trial -> "Trial user"
+        Plan.PromotionalPurchase -> "Promotional Purchase"
     }
 }
 
@@ -43,6 +45,7 @@ fun String.toPlan(): Plan {
     return when (this) {
         Plan.Monthly.token -> Plan.Monthly
         Plan.ThreeMonthly.token -> Plan.ThreeMonthly
+        Plan.PromotionalPurchase.token -> Plan.PromotionalPurchase
         else -> Plan.Trial
     }
 }

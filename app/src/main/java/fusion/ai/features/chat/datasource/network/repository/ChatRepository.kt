@@ -140,10 +140,11 @@ class ChatRepository @Inject constructor(
 
     private suspend fun initSession(id: String): Result<Boolean> {
         Timber.d("User id $id")
-        val attachApiKey = settingDs.getCurrentPlan.first() == Plan.ThreeMonthly
+        val currentPlan = settingDs.getCurrentPlan.first()
+        val attachApiKey = currentPlan == Plan.ThreeMonthly || currentPlan == Plan.PromotionalPurchase
         val apiKey = if (attachApiKey) settingDs.getApiKey.first() else null
         val streamResponse = settingDs.streamResponse.first()
-        Timber.d("Initiating connection $attachApiKey")
+        Timber.d("Initiating connection $attachApiKey $currentPlan")
         return try {
             socket = client.webSocketSession {
                 url(Endpoints.ChatSocket.build())

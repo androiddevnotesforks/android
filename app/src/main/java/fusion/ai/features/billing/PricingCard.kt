@@ -79,7 +79,7 @@ fun Plan.getName(): String {
     return when (this) {
         Plan.Monthly -> "Unlimited Monthly Subscription"
         Plan.ThreeMonthly -> "Your Own API Key + 3 Month Subscription**"
-        Plan.Trial -> "Trial Plan"
+        else -> "Trial Plan"
     }
 }
 
