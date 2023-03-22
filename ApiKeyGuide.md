@@ -9,3 +9,6 @@ ___
 3. Once signed up, you can visit the API section or [click here to visit](https://platform.openai.com/account/api-keys)
 4. Click **Create new secret key**
 5. Copy it and paste it in HandyAI app when prompted.
+
+___
+❌ Remember to include a payment method on OpenAI's website, otherwise the Chat may abruptly come to a halt. Typically, this step is required for verification purposes, and you won't be charged initially.
