@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-internal fun <T> LiveData<T>.asFlow(): Flow<T> = flow {
+fun <T> LiveData<T>.asFlow(): Flow<T> = flow {
     val channel = Channel<T>(Channel.CONFLATED)
     val observer = Observer<T> {
         channel.trySend(it).isSuccess

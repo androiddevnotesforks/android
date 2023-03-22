@@ -43,8 +43,9 @@ class BillingVM @Inject constructor(
         ),
         billingRepository.monthlyPrice,
         billingRepository.threeMonthlyPrice,
+        billingRepository.tokens10Price,
         errorEvent
-    ) { enabled, summary, onClick, subscriptionState, monthlyPricing, lifetimePricing, errorEvent ->
+    ) { enabled, summary, onClick, subscriptionState, monthlyPricing, threeMonthlyPricing, tokens10KPricing, errorEvent ->
         BillingVMState(
             enabled = enabled,
             summary = summary,
@@ -52,7 +53,8 @@ class BillingVM @Inject constructor(
             billingState = subscriptionState,
             billingPricing = ProductPricing(
                 monthly = monthlyPricing,
-                threeMonthly = lifetimePricing
+                threeMonthly = threeMonthlyPricing,
+                tokens10K = tokens10KPricing
             ),
             errorEvent = errorEvent
         )
@@ -96,6 +98,7 @@ class BillingVM @Inject constructor(
         }
     }
 
+    @Suppress("unused")
     fun consumePurchaseDebug() {
         if (BuildConfig.DEBUG) {
             billingRepository.debugConsume()

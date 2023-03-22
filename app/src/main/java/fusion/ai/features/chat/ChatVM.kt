@@ -67,9 +67,9 @@ class ChatVM @Inject constructor(
         maxPromptLength.update {
             when (userPlan) {
                 Plan.Trial -> 40
-                Plan.Monthly -> 100
                 Plan.ThreeMonthly -> 2000
-                Plan.PromotionalPurchase -> 1000
+                /**  [Plan.Monthly] [Plan.Tokens10K]*/
+                else -> 100
             }
         }
         ChatState(

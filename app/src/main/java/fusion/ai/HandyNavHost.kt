@@ -78,6 +78,10 @@ fun HandyNavHost(
         composable(
             route = Screen.Pricing.route
         ) {
+//            BillingScreen(
+//                viewModel = hiltViewModel(),
+//                snackbarHostState = snackbarHostState
+//            )
             BillingScreen(
                 viewModel = hiltViewModel(),
                 snackbarHostState = snackbarHostState

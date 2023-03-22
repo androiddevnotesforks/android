@@ -22,4 +22,7 @@ interface ChatDao {
 
     @Query("SELECT * FROM chat WHERE chatId = :id")
     suspend fun getChatById(id: String): ChatEntity?
+
+    @Query("DELETE FROM chat WHERE chatId = :id")
+    suspend fun deleteChat(id: String)
 }

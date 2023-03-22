@@ -140,11 +140,10 @@ class ChatRepository @Inject constructor(
 
     private suspend fun initSession(id: String): Result<Boolean> {
         Timber.d("User id $id")
-        val currentPlan = settingDs.getCurrentPlan.first()
-        val attachApiKey = currentPlan == Plan.ThreeMonthly || currentPlan == Plan.PromotionalPurchase
+        val attachApiKey = settingDs.getCurrentPlan.first() == Plan.ThreeMonthly
         val apiKey = if (attachApiKey) settingDs.getApiKey.first() else null
         val streamResponse = settingDs.streamResponse.first()
-        Timber.d("Initiating connection $attachApiKey $currentPlan")
+        Timber.d("Initiating connection $attachApiKey")
         return try {
             socket = client.webSocketSession {
                 url(Endpoints.ChatSocket.build())
@@ -319,6 +318,14 @@ class ChatRepository @Inject constructor(
             }
         }
         emit(Result.success(libraryPresetsDao.getPresets()))
+    }
+
+    suspend fun removeAddApiDialog() {
+        try {
+            chatDao.deleteChat(API_KEY_MISSING_ID)
+        } catch (e: Exception) {
+            Timber.e(e)
+        }
     }
 
     companion object {

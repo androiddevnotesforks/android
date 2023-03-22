@@ -85,6 +85,9 @@ class BillingRepository(
     val threeMonthlyPrice
         get() = getSubscriptionPrice(Plan.ThreeMonthly.token).distinctUntilChanged()
 
+    val tokens10Price
+        get() = getSubscriptionPrice(Plan.Tokens10K.token).distinctUntilChanged()
+
     /**
      * Flow of the [premium membership][PurchaseType.Premium] SKU's [SkuState]
      */
@@ -307,11 +310,7 @@ class BillingRepository(
         plan: Plan
     ) = productDetailsMap[sku]?.value?.let { details ->
         val offerToken = details.subscriptionOfferDetails?.find { product ->
-            product.basePlanId == when (plan) {
-                Plan.Monthly -> Plan.Monthly.token
-                Plan.ThreeMonthly -> Plan.ThreeMonthly.token
-                else -> throw Exception()
-            }
+            product.basePlanId == plan.getPlanPurchaseToken()
         }?.offerToken ?: kotlin.run {
             Timber.e("Offer Token null")
             return@let

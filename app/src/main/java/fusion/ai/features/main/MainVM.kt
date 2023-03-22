@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fusion.ai.billing.BillingRepository
 import fusion.ai.billing.Plan
 import fusion.ai.datasource.cache.datastore.SettingsDataStore
+import fusion.ai.features.chat.datasource.network.repository.ChatRepository
 import fusion.ai.features.signin.GoogleSignInHandler
 import fusion.ai.features.signin.datasource.network.worker.SignInManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +28,8 @@ class MainVM @Inject constructor(
     private val signInHandler: GoogleSignInHandler,
     private val billingRepository: BillingRepository,
     private val settingDs: SettingsDataStore,
-    private val signInManager: SignInManager
+    private val signInManager: SignInManager,
+    private val chatRepository: ChatRepository
 ) : ViewModel() {
 
     private val signInState = MutableStateFlow<SignInState>(SignInState.Unknown)
@@ -110,6 +112,7 @@ class MainVM @Inject constructor(
     fun updateApiKeyLocally(key: String) {
         viewModelScope.launch {
             settingDs.updateApiKey(key)
+            chatRepository.removeAddApiDialog()
         }
     }
 }

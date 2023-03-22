@@ -56,6 +56,7 @@ import fusion.ai.datasource.cache.entity.MessageType
 import fusion.ai.features.chat.components.AnimatedPlaceholder
 import fusion.ai.features.chat.components.ErrorMessageContent
 import fusion.ai.features.chat.components.MessageContent
+import fusion.ai.features.chat.components.PlaceholderHints
 import fusion.ai.features.chat.components.SignInMessageOptions
 import fusion.ai.features.chat.components.WelcomeMessageOptions
 import fusion.ai.ui.theme.InterFontFamily
@@ -399,7 +400,7 @@ fun ChatScreen(
                             )
                         }
 
-                        AnimatedPlaceholder(hints)
+                        AnimatedPlaceholder(PlaceholderHints(hints))
                     },
                     trailingIcon = {
                         IconButton(

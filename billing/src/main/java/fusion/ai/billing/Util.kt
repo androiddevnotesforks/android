@@ -11,25 +11,18 @@ enum class PurchaseType(
 
 enum class Plan(val token: String) {
     Monthly("monthly"),
-    Trial("Trial"),
+    Trial("trial"),
+    Tokens10K("10-k-tokens"),
     /** Users use their own API Key */
-    ThreeMonthly("3-month-api-key"),
-    PromotionalPurchase("promotional_purchase")
-}
+    ThreeMonthly("3-month-api-key");
 
-val planList = listOf(Plan.Monthly, Plan.ThreeMonthly)
-
-fun ProductPricing.getAccordingly(plan: Plan): String? {
-    return when (plan) {
-        Plan.Monthly -> monthly
-        Plan.ThreeMonthly -> threeMonthly
-        else -> null
-    }
+    fun getPlanPurchaseToken() = token
 }
 
 data class ProductPricing(
     val monthly: String?,
     val threeMonthly: String?,
+    val tokens10K: String?
 )
 
 fun Plan.toName(): String {
@@ -37,7 +30,7 @@ fun Plan.toName(): String {
         Plan.ThreeMonthly -> "Three Month plan"
         Plan.Monthly -> "Monthly plan"
         Plan.Trial -> "Trial user"
-        Plan.PromotionalPurchase -> "Promotional Purchase"
+        Plan.Tokens10K -> "10K Tokens"
     }
 }
 
@@ -45,7 +38,8 @@ fun String.toPlan(): Plan {
     return when (this) {
         Plan.Monthly.token -> Plan.Monthly
         Plan.ThreeMonthly.token -> Plan.ThreeMonthly
-        Plan.PromotionalPurchase.token -> Plan.PromotionalPurchase
-        else -> Plan.Trial
+        Plan.Tokens10K.token -> Plan.Tokens10K
+        Plan.Trial.token -> Plan.Trial
+        else -> throw IllegalAccessException("Plan Missing!")
     }
 }

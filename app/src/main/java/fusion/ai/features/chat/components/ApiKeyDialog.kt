@@ -33,18 +33,22 @@ import fusion.ai.ui.theme.InterFontFamily
 fun ApiKeyDialog(
     apiKeyConfigured: Boolean,
     onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
     save: (String) -> Unit
 ) {
     val (apiKey, updateApiKey) = remember {
         mutableStateOf("")
     }
-    Dialog(onDismissRequest = onDismissRequest) {
+    Dialog(
+        onDismissRequest = onDismissRequest
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(MaterialTheme.shapes.medium)
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(12.dp),
+                .padding(12.dp)
+                .then(modifier),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             if (apiKeyConfigured) {

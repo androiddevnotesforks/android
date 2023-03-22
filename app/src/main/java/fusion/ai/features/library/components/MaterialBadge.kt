@@ -20,9 +20,9 @@ import fusion.ai.ui.theme.InterFontFamily
 
 @Composable
 fun MaterialBadge(
-    modifier: Modifier = Modifier,
     text: String,
     textSize: Int,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
     Box(
@@ -46,9 +46,9 @@ fun MaterialBadge(
 
 @Composable
 fun MaterialBadgeOutline(
-    modifier: Modifier = Modifier,
     text: String,
     textSize: Int,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
     Box(

@@ -57,9 +57,9 @@
     <string name="api_key_set_btn">Set</string>
     <string name="ai_library">AI Library</string>
     <string name="upgrade">Upgrade</string>
-    <string name="updated">Updated</string>
+    <string name="updated">Key Updated, Please continue using the app.</string>
     <string name="stream_response_setting">Stream Response</string>
-    <string name="stream_response_settings_desc">If on, assistant\'s message will arrive word by word.</string>
+    <string name="stream_response_settings_desc">If turned on, assistant\'s message will arrive word by word.</string>
     <string name="feedback_request">• New and affordable Pricing Model\n• Fixed an issue where the assistant chat was showing up in the wrong place in the chat list\n• Fixed a disconnection problem that happened when the app was in the background \n\nWe would love to hear your feedback about HandyAI, Please use the feedback button located at the top of the app to let us know how we can improve. Thank you!</string>
     <string name="restart_app_message">Please restart the app for settings to take effect</string>
 </resources>

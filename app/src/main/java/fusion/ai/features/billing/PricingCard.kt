@@ -21,18 +21,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fusion.ai.billing.Plan
 import fusion.ai.billing.ProductPricing
-import fusion.ai.billing.getAccordingly
 import fusion.ai.ui.theme.InterFontFamily
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PricingCard(
-    modifier: Modifier = Modifier,
     plan: Plan,
     isSelected: Boolean,
     updateSelection: () -> Unit,
     productPricing: ProductPricing?,
-    isEnabled: Boolean
+    isEnabled: Boolean,
+    modifier: Modifier = Modifier
 ) {
     OutlinedCard(
         modifier = modifier,
@@ -79,6 +78,7 @@ fun Plan.getName(): String {
     return when (this) {
         Plan.Monthly -> "Unlimited Monthly Subscription"
         Plan.ThreeMonthly -> "Your Own API Key + 3 Month Subscription**"
+        Plan.Tokens10K -> "~20K Words exchange between You & AI\nMonthly Subscription"
         else -> "Trial Plan"
     }
 }
@@ -100,6 +100,14 @@ fun Plan.getRewards(): List<Features> {
             Features("GPT remembers your previous 10 chats"),
             Features("50 Image Generation"),
             Features("Send and receive up-to 4000 words")
+        )
+
+        Plan.Tokens10K -> listOf(
+            Features("~20K Words exchange between You and AI"),
+            Features("Fast & Secure"),
+            Features("Access to all presets in library"),
+            Features("GPT remembers your previous 2 chats"),
+            Features("5 Image Generation")
         )
 
         else -> listOf()

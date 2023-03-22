@@ -57,11 +57,11 @@ import fusion.ai.ui.theme.InterFontFamily
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LibraryScreen(
-    modifier: Modifier = Modifier,
-    viewModel: LibraryVM = hiltViewModel(),
+    navigateToPricingScreen: () -> Unit,
     snackbarHostState: SnackbarHostState,
     navigateToChatScreen: (presetId: Int, toolId: Int, extrasId: Int?) -> Unit,
-    navigateToPricingScreen: () -> Unit
+    modifier: Modifier = Modifier,
+    viewModel: LibraryVM = hiltViewModel()
 ) {
     val state = viewModel.state.collectAsState().value
     val context = LocalContext.current

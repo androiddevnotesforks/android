@@ -18,8 +18,10 @@ import androidx.compose.animation.with
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
@@ -28,12 +30,19 @@ import androidx.compose.ui.unit.sp
 import fusion.ai.ui.theme.InterFontFamily
 import kotlinx.coroutines.delay
 
+@Immutable
+data class PlaceholderHints(
+    val values: List<String>
+)
+
 @Composable
 fun AnimatedPlaceholder(
-    hints: List<String>,
+    placeholderHints: PlaceholderHints,
+    modifier: Modifier = Modifier,
     textStyle: FontFamily = InterFontFamily,
     textColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
 ) {
+    val hints = placeholderHints.values
     val iterator = hints.listIterator()
 
     val target by produceState(
@@ -52,7 +61,8 @@ fun AnimatedPlaceholder(
     AnimatedContent(
         targetState = target,
         transitionSpec = { ScrollAnimation() },
-        label = "placeholder"
+        label = "placeholder",
+        modifier = modifier
     ) { str ->
         Text(
             text = str,
